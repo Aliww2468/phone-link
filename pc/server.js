@@ -491,7 +491,9 @@ server.listen(cfg.port, '0.0.0.0', () => {
     console.error(`${C.yellow}[warn]${C.reset} cannot bind discovery port ${cfg.discoveryPort}: ${e.message}`);
   }
 
-  if (cfg.openBrowser && process.env.PHONELINK_NO_BROWSER !== '1') {
+  // The autostart shortcut passes --no-browser so a reboot does not pop a browser tab.
+  const noBrowser = process.argv.includes('--no-browser') || process.env.PHONELINK_NO_BROWSER === '1';
+  if (cfg.openBrowser && !noBrowser) {
     const url = `http://127.0.0.1:${cfg.port}/`;
     try {
       spawn('cmd', ['/c', 'start', '', url], { detached: true, stdio: 'ignore', windowsHide: true }).unref();

@@ -1,4 +1,4 @@
-﻿PhoneLink - 手机端一键安装（通过 USB 数据线，全程无需在手机上点任何东西）
+﻿# PhoneLink - 手机端一键安装（通过 USB 数据线，全程无需在手机上点任何东西）
 #
 # 用法：
 #   powershell -ExecutionPolicy Bypass -File install.ps1

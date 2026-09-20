@@ -17,13 +17,36 @@
 
 ---
 
-## 一、快速开始（三步）
+## 下载（不想自己编译）
 
-### 第 1 步：电脑端启动接收服务
+到 [**Releases**](https://github.com/Aliww2468/phone-link/releases/latest) 下载两个文件：
 
-双击 `pc\start.bat`。
+| 文件 | 装在哪 | 说明 |
+|---|---|---|
+| `PhoneLink-PC-v1.0.0.zip` | 电脑 | 约 33 MB，**已内置 Node 运行时**。解压 → 双击「安装.bat」→ 双击「启动.bat」。不用装任何东西、不用联网、不用碰命令行 |
+| `PhoneLink.apk` | 手机 | 直接安装即可（安卓 6.0+） |
 
-屏幕上会打印出**手机需要填的 IP** 和**配对令牌**，例如：
+只想快速用起来的话，上面这张表就够了；下面是详细步骤、原理和从源码构建的方法。
+
+---
+
+## 一、快速开始
+
+### 第 1 步：电脑端安装并启动
+
+**拿到安装包的人**：解压后双击 **`安装.bat`**（会弹管理员授权，用来放行防火墙），
+装完再双击 **`启动.bat`**。
+
+**从源码的人**：
+
+```powershell
+# 在项目根目录执行
+powershell -ExecutionPolicy Bypass -File .\install-pc.ps1
+powershell -ExecutionPolicy Bypass -File .\pc\start.bat   # 或直接双击
+```
+
+两种方式都会自动完成：准备 Node 运行时 → 生成配对令牌 → 放行防火墙（TCP 8787 / UDP 8788）
+→ 设置开机自启，然后打印出**手机需要填的 IP** 和**配对令牌**：
 
 ```
   本机名称 : MY-PC
@@ -33,16 +56,12 @@
   网页查看  : http://127.0.0.1:8787/
 ```
 
-浏览器会自动打开消息网页。**这个窗口保持开着**（后面可设成开机自启）。
+> **防火墙必须放行**，否则手机连电脑时会被挡住，表现为「连不上」。
+> 规则限定 `RemoteAddress LocalSubnet`，公网访问不到。
 
-### 第 2 步：放行防火墙（只需一次）
+启动后浏览器会自动打开消息网页。**窗口保持开着**（设过开机自启就不用管了）。
 
-右键 `pc\allow-firewall.ps1` → **使用 PowerShell 运行**（会弹 UAC，点「是」）。
-只放行本网段，不放行公网。
-
-> 如果跳过这一步，手机连电脑时会被 Windows 防火墙挡住，表现为「连不上」。
-
-### 第 3 步：安装手机 App（数据线，一次性）
+### 第 2 步：安装手机 App（数据线，一次性）
 
 1. 手机开启开发者选项：**设置 → 关于手机 → 连点「版本号」7 次**
 2. **设置 → 系统和更新 → 开发人员选项 → 打开「USB 调试」**
@@ -93,12 +112,14 @@ App 界面里有按钮可以**直接跳到这两个页面**。
 | 看消息流水 | 跑着的那个黑色窗口会实时打印 |
 | 翻历史 / 存档 | `pc\data\messages.log`（纯文本，可直接搜）、`pc\data\messages.db`（SQLite） |
 | 导出 | 网页右上角「导出全部」 |
-| 电脑开机自动接收 | 运行一次 `pc\install-autostart.ps1`（登录后最小化启动，不打扰） |
-| 取消电脑自启 | `pc\install-autostart.ps1 -Uninstall` |
+| 电脑开机自动接收 | `install-pc.ps1` 安装时已自动设置（登录后最小化启动，不打扰） |
+| 取消电脑自启 | 删除「开始菜单 → 启动」文件夹里的 `PhoneLink.lnk` |
+| 换端口重装 | `.\install-pc.ps1 -Port 9000` |
+| 只装不带自启 | `.\install-pc.ps1 -NoAutostart` |
 | 临时验证（没有手机时） | `node pc\simulate-phone.js` 模拟手机推几条消息 |
 
 **电脑换了 IP 或路由器重新分配了地址？** 不用管 —— App 里的「自动搜索电脑」默认开启，
-推送连续失败时会自动用 UDP 广播重新找到电脑（前提是第 2 步放行了 UDP 8788）。
+推送连续失败时会自动用 UDP 广播重新找到电脑（前提是安装时放行了 UDP 8788）。
 
 ---
 
@@ -140,13 +161,15 @@ PhoneLink\                     ← 文件夹名必须纯英文，原因见第六
 │     └─ Config.java / Msg.java
 ├─ pc\                       电脑端
 │  ├─ server.js              Node 接收服务（零 npm 依赖）
-│  ├─ start.bat              启动
+│  ├─ start.bat              从源码启动
+│  ├─ server.js              Node 接收服务（零 npm 依赖）
 │  ├─ public\index.html      消息网页
-│  ├─ allow-firewall.ps1     放行防火墙（需管理员）
-│  ├─ install-autostart.ps1  电脑开机自启
 │  ├─ simulate-phone.js      模拟手机，用于自测
 │  ├─ config.json            端口 / 令牌（首次运行自动生成）
 │  └─ data\                  消息存档（messages.db / messages.log）
+├─ install-pc.ps1            **电脑端一键安装**（Node 准备 / 令牌 / 防火墙 / 自启）
+├─ build-pc-package.ps1      打包成可分发的 zip（内置 Node 运行时 + APK）
+├─ packaging\                安装包里的启动器和说明书模板
 └─ toolchain\                构建工具链（约 1 GB，装一次就够）
    ├─ jdk-17\                Temurin JDK 17
    ├─ android-sdk\           platform-tools / build-tools 34 / android-34
@@ -188,10 +211,42 @@ powershell -ExecutionPolicy Bypass -File .\build.ps1
 > 还有第二个坑：PowerShell 5.1 读**无 BOM 的 UTF-8** 脚本时按 GBK 解码。本项目最初的
 > 工具链脚本因此把 SDK 装进了一个乱码目录。现在带中文的 .ps1 全部是 **UTF-8 with BOM**，
 > 纯 ASCII 的则无所谓——改脚本时请保持这个约定。
+>
+> 加 BOM 时**不要**用 `Substring(1)` 去剥 BOM：`[char]0xFEFF` 在某些转换路径下会变成空字符串，
+> 于是 `StartsWith("")` 恒为真，每转换一次就吃掉首行第 1 个字符（本项目踩过，
+> 两个安装脚本的第 1 行 `#` 被吃掉，直接无法运行）。用
+> `Set-Content -Encoding UTF8`（PS 5.1 原生带 BOM）最稳。
 
 ---
 
-## 七、通信协议（想自己改的话）
+## 七、打可分发的安装包
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\build-pc-package.ps1
+```
+
+产物：`dist\PhoneLink-PC-v1.0.0.zip`（约 33 MB）。里面已经装好：
+
+```
+PhoneLink-PC\
+├─ 安装.bat          ← 对方双击这个（自动提权、放行防火墙、设开机自启）
+├─ 启动.bat          ← 启动接收端
+├─ PhoneLink.apk     ← 手机端
+├─ 使用说明.txt       ← 给非技术用户看的图文说明
+├─ install-pc.ps1
+├─ pc\               服务端代码
+└─ node\node.exe     内置 Node 运行时（89 MB，所以压缩包 33 MB）
+```
+
+对方**不需要装 Node.js、不需要联网、不需要命令行**。首次打包会自动下载
+Node 运行时并缓存在 `.cache\`（已 gitignore），之后打包走缓存。
+
+> 为什么内置 Node 而不是让对方自己装？因为少一次下载就少一个失败点——
+> 尤其在国内，nodejs.org 和 GitHub 一样可能连不上。
+
+---
+
+## 八、通信协议（想自己改的话）
 
 **推送消息** `POST http://<电脑IP>:8787/api/messages`
 
@@ -224,12 +279,12 @@ powershell -ExecutionPolicy Bypass -File .\build.ps1
 
 ---
 
-## 八、常见问题
+## 九、常见问题
 
 **Q：手机 App 一直显示「电脑不可达」**
 1. 手机和电脑是不是同一个 WiFi？（手机开热点给电脑也行，反过来不行）
-2. `pc\allow-firewall.ps1` 跑过没有？
-3. 电脑上 `start.bat` 那个窗口还开着吗？
+2. `安装.bat` / `install-pc.ps1` 跑过没有？（它负责放行防火墙）
+3. 电脑上接收端的窗口还开着吗？
 4. 打开手机 App → 点「自动搜索电脑」；还不行就手填电脑 IP。
 
 **Q：短信收不到 / App 里短信权限显示未授权**
@@ -256,7 +311,7 @@ Android 10+ 对短信权限有硬限制，`pm grant` 可能失败。**不影响�
 
 ---
 
-## 九、安全说明
+## 十、安全说明
 
 - 只在**局域网**内通信，数据不经过任何第三方服务器，全程不联网外发。
 - `X-Token` 配对令牌保护写入接口（读接口是本机网页用，不暴露到公网即可）。
@@ -269,7 +324,7 @@ Android 10+ 对短信权限有硬限制，`pm grant` 可能失败。**不影响�
 
 ---
 
-## 十、仓库里**没有**的东西
+## 十一、仓库里**没有**的东西
 
 以下几项被 `.gitignore` 排除，clone 后不会出现，属正常现象：
 

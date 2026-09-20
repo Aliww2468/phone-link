@@ -10,6 +10,15 @@ toolchain/*
 # ---- 构建中间产物 ----
 build/
 
+# ---- 打包缓存（Node 运行时 zip 等），build-pc-package.ps1 会自动下载 ----
+.cache/
+
+# ---- 组装出来的安装包目录（zip 本身保留在 dist/ 下）----
+dist/PhoneLink-PC/
+
+# ---- 分发用的大压缩包只挂到 GitHub Release，不进 git 历史 ----
+dist/*.zip
+
 # ---- 签名密钥：口令是固定的，公开等于任何人都能签出
 #      能覆盖安装到你手机上的 APK，绝不入库 ----
 phonelink.jks
