@@ -266,3 +266,22 @@ Android 10+ 对短信权限有硬限制，`pm grant` 可能失败。**不影响�
   代价是手机端要手动填一次 IP。
 - 防火墙规则限定 `RemoteAddress LocalSubnet`，公网访问不到。
 - 短信和通知属于高度隐私数据，`pc\data\` 目录请自行注意备份与清理。
+
+---
+
+## 十、仓库里**没有**的东西
+
+以下几项被 `.gitignore` 排除，clone 后不会出现，属正常现象：
+
+| 项 | 原因 | 怎么补回来 |
+|---|---|---|
+| `toolchain\`（约 1 GB） | JDK + Android SDK 体积过大 | 运行 `toolchain\setup-toolchain.ps1` 自动下载 |
+| `phonelink.jks` | 签名密钥，口令固定，公开等于任何人都能签出可覆盖安装的 APK | `build.ps1` 首次运行会自动生成 |
+| `pc\config.json` | 内含配对令牌 | `server.js` 首次运行自动生成并打印 |
+| `pc\data\` | 你的消息记录 | 运行时自动创建 |
+
+---
+
+## 许可证
+
+[MIT](LICENSE) © 2026 Aliww2468
