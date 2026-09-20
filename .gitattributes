@@ -1,0 +1,19 @@
+# 默认按文本处理并自动识别二进制
+* text=auto
+
+# Windows 脚本强制 CRLF：.bat 用 LF 结尾在个别情况下会导致标签跳转异常
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# 二进制文件不要做行尾转换
+*.apk  binary
+*.idsig binary
+*.png  binary
+*.jpg  binary
+*.jks  binary
+*.db   binary
+*.dex  binary
+
+# 让 GitHub 正确统计语言构成
+*.java linguist-language=Java
